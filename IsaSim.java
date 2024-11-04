@@ -9,10 +9,10 @@
 public class IsaSim {
 
     static int pc;
-    static int reg[] = new int[4];
+    static int[] reg = new int[4];
 
     // Here the first program hard coded as an array
-    static int progr[] = {
+    static int[] progr = {
             // As minimal RISC-V assembler example
             0x00200093, // addi x1 x0 2
             0x00300113, // addi x2 x0 3
