@@ -1,3 +1,4 @@
+package examples;
 public class InstructionTest {
     public static void main(String[] args) {
         long R = 0b10000100001001000010000000 + 0b0110011;
@@ -35,6 +36,7 @@ public class InstructionTest {
                 break;
             
             case 0b0010011, 0b0000011, 0b1100111, 0b1110011: // I-type
+                System.out.println("I-type:");
                 funct3 = (int) ((instruction >> 12) & 0x07);
                 rd = (int) ((instruction >> 7) & 0x01f);
                 rs1 = (int) ((instruction >> 15) & 0x01f);

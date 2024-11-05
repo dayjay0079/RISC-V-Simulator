@@ -1,3 +1,4 @@
+package examples;
 /**
  * RISC-V Instruction Set Simulator
  * <p>
