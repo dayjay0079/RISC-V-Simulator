@@ -16,9 +16,14 @@ public class MainTester {
 
         System.out.println("Checking integer opcode:");
         int[] opcode = Read.read("instructions.txt");
+        for (int k : opcode) {
+            Read.instructionDecode(k);
+            System.out.println();
+        }
 
-        for (int i = 0; i < opcode.length; i++) {
-            Read.instructionDecode(opcode[i]);
+        int[] addLarge = Read.read("./tests/task1/addLarge.bin");
+        for (int j : addLarge) {
+            Read.instructionDecode(j);
             System.out.println();
         }
     }
