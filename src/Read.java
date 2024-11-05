@@ -16,11 +16,10 @@ public class Read {
         
         Scanner in = new Scanner(file);
         int[] values = new int[lineCount];
-        int number = 0;
 
         for (int i = 0; i < lineCount; i++) {
             String line = in.nextLine();
-            values[number] = (int) Long.parseLong(line, 2);
+            values[i] = (int) Long.parseLong(line, 2);
         }
 
         in.close();
