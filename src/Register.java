@@ -6,14 +6,10 @@ public class Register {
     }
 
     public int get() {
-        return data;
+        return (address != 0) ? this.data : 0;
     }
 
     public void set(int data) {
-        if (address!=0) {
-            this.data = data;
-        } else {
-            this.data = 0;
-        }
+        this.data = (address != 0) ? data : 0;
     }
 }

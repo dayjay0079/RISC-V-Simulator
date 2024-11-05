@@ -30,3 +30,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Misc ###
+/RISCV_CARD.pdf

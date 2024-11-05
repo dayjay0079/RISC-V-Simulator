@@ -3,10 +3,20 @@ import java.io.*;
 
 public class Read {
     private static boolean DEBUG = true;
-    public static int[] read(String path) throws FileNotFoundException {
+    public static int[] read(String path) {
         File file = new File(path);
-        Scanner count = new Scanner(file);
+        Scanner count = null;
+        Scanner in = null;
+        try {
+            count = new Scanner(file);
+            in = new Scanner(file);
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found. Printing stack trace:");
+            e.printStackTrace();
+            System.exit(1);
+        }
 
+        // Count amount of instructions
         int lineCount = 0;
         while(count.hasNextLine()) {
             lineCount++;
@@ -14,9 +24,8 @@ public class Read {
         }
         count.close();
         
-        Scanner in = new Scanner(file);
+        // Store binary instructions as integers
         int[] values = new int[lineCount];
-
         for (int i = 0; i < lineCount; i++) {
             String line = in.nextLine();
             values[i] = (int) Long.parseLong(line, 2);
@@ -26,61 +35,104 @@ public class Read {
         return values;
     }
 
+    public static int getOpcode(int instruction) {
+        return instruction & 0x7f;
+    }
+
+    public static int getRd(int instruction) {
+        return (instruction >> 7) & 0x01f;
+    }
+
+    public static int getFunct3(int instruction) {
+        return (instruction >> 12) & 0x07;
+    }
+
+    public static int getRs1(int instruction) {
+        return (instruction >> 15) & 0x01f;
+    }
+
+    public static int getRs2(int instruction) {
+        return (instruction >> 20) & 0x01f;
+    }
+
+    public static int getFunct7(int instruction) {
+        return instruction >>> 25;
+    }
+
+    public static int getImmI(int instruction) {
+        return instruction >>> 20;
+    }
+
+    public static int getImmS(int instruction) {
+        return ((instruction >> 7) & 0x01f) | ((instruction >> 20) & 0x0fe0);
+    }
+
+    public static int getImmB(int instruction) {
+        return (((instruction >> 7) & 0x01E) | ((instruction << 4) & 0x0800)) |
+                ((instruction >> 20) & 0x07e0) | ((instruction >> 19) & 0x01000);
+    }
+
+    public static int getImmU(int instruction) {
+        return instruction >>> 12;
+    }
+
+    public static int getImmJ(int instruction) {
+        return ((instruction & 0x0ff000) | ((instruction >> 9) & 0x0800)) |
+                ((instruction >> 20) & 0x07fe) | ((instruction >> 11) & 0x0100000);
+    }
+
     public static void instructionDecode(int instruction) {
-        int opcode = instruction & 0x7f;
+        int opcode = getOpcode(instruction);
         int rd = 0;
         int rs1 = 0;
         int rs2 = 0;
         int funct3 = 0;
         int funct7 = 0;
-        long imm = 0;
+        int imm = 0;
         switch (opcode) {
             case 0b0110011: // R-type
-                rd = (instruction >> 7) & 0x01f;
-                funct3 = (instruction >> 12) & 0x07;
-                rs1 = (instruction >> 15) & 0x01f;
-                rs2 = (instruction >> 20) & 0x01f;
-                funct7 = instruction >>> 25;
+                rd = getRd(instruction);
+                funct3 = getFunct3(instruction);
+                rs1 = getRs1(instruction);
+                rs2 = getRs2(instruction);
+                funct7 = getFunct7(instruction);
                 break;
             
             case 0b0010011, 0b0000011, 0b1100111, 0b1110011: // I-type
-                funct3 = (instruction >> 12) & 0x07;
-                rd = (instruction >> 7) & 0x01f;
-                rs1 = (instruction >> 15) & 0x01f;
-                imm = (long) (instruction >>> 20);
+                funct3 = getFunct3(instruction);
+                rd = getRd(instruction);
+                rs1 = getRs1(instruction);
+                imm = getImmI(instruction);
                 break;
             
             case 0b0100011: // S-type
-                imm = (long) (((instruction >> 7) & 0x01f) | ((instruction >> 20) & 0x0fe0));
-                funct3 = (instruction >> 12) & 0x07;
-                rs1 = (instruction >> 15) & 0x01f;
-                rs2 = (instruction >> 20) & 0x01f;
+                imm = getImmS(instruction);
+                funct3 = getFunct3(instruction);
+                rs1 = getRs1(instruction);
+                rs2 = getRs2(instruction);
                 break;
             
             case 0b1100011: // B-type
-                imm = (long) ((((instruction >> 7) & 0x01E) | ((instruction << 4) & 0x0800)) |
-                            ((instruction >> 20) & 0x07e0) | ((instruction >> 19) & 0x01000));
-                funct3 = (instruction >> 12) & 0x07;
-                rs1 = (instruction >> 15) & 0x01f;
-                rs2 = (instruction >> 20) & 0x01f;
+                imm = getImmB(instruction);
+                funct3 = getFunct3(instruction);
+                rs1 = getRs1(instruction);
+                rs2 = getRs2(instruction);
                 break;
             
             case 0b0110111, 0b0010111: // U-type
-                rd = (instruction >> 7) & 0x01f;
-                imm = instruction >>> 12;
+                rd = getRd(instruction);
+                imm = getImmU(instruction);
                 break;
             
             case 0b1101111: // J-type
-                rd = (instruction >> 7) & 0x01f;
-                imm = (long) (((instruction & 0x0ff000) | ((instruction >> 9) & 0x0800)) |
-                             ((instruction >> 20) & 0x07fe) | ((instruction >> 11) & 0x0100000));
+                rd = getRd(instruction);
+                imm = getImmJ(instruction);
                 break;
             
             default:
-                System.out.println("Instruction: " + Integer.toBinaryString(instruction));
+                System.out.println("Error on instruction: " + Integer.toBinaryString(instruction));
                 System.out.println("Opcode " + Integer.toBinaryString(opcode) + " not yet implemented");
-                System.exit(0);
-
+//                System.exit(0);
         }
         if (DEBUG) {
             if (opcode != 0) {
