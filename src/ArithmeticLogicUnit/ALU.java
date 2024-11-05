@@ -1,3 +1,5 @@
+package ArithmeticLogicUnit;
+
 public class ALU {
     // Add
     public static int add(int a, int b) {
