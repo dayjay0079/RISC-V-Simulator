@@ -35,6 +35,35 @@ public class Read {
         return values;
     }
 
+    public static int[] readBin(String path) throws IOException {
+        File file = new File(path);
+        InputStream in = null;
+        try {
+            in = new DataInputStream(new FileInputStream(file));
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found. Printing stack trace:");
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        // Store file in byte array
+        byte[] program =  in.readAllBytes();
+        in.close();
+
+        // Store binary instructions as integers
+        int instructionCount = program.length / 4;
+        int[] instructions = new int[instructionCount];
+        for (int i = 0; i < instructionCount; i++) {
+            int instruction = 0;
+            for (int j = 0; j < 4; j++) {
+                instruction |= ((int)program[i*4 + j] & 0xff) << (j*8);
+            }
+            instructions[i] = instruction;
+        }
+
+        return instructions;
+    }
+
     public static int getOpcode(int instruction) {
         return instruction & 0x7f;
     }
@@ -56,7 +85,7 @@ public class Read {
     }
 
     public static int getFunct7(int instruction) {
-        return instruction >>> 25;
+        return (instruction >> 25) & 0x07f;
     }
 
     public static int getImmI(int instruction) {
