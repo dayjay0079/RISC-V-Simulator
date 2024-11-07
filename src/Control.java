@@ -104,11 +104,36 @@ public class Control {
     }
 
     private void executeI2(int rd, int funct3, int rs1, int imm, int imm_5_11) {
-        System.out.println("Load operations not yet implemented");
+        int rs1Data = this.regs[rs1].get();
+        int result = 0;
+
+        if (funct3 == 0x0) {
+            System.out.println("LB x" + rd + ", " + imm + "(x" + rs1 + ")");
+            result = this.mem.loadByte(rs1Data + imm);
+        } else if (funct3 == 0x1) {
+            System.out.println("LH x" + rd + ", " + imm + "(x" + rs1 + ")");
+            result = this.mem.loadHalfWord(rs1Data + imm);
+        } else if (funct3 == 0x2) {
+            System.out.println("LW x" + rd + ", " + imm + "(x" + rs1 + ")");
+            result = this.mem.loadWord(rs1Data + imm);
+        } else if (funct3 == 0x4) {
+            System.out.println("LBU x" + rd + ", " + imm + "(x" + rs1 + ")");
+            result = this.mem.loadUnsignedByte(rs1Data + imm);
+        } else if (funct3 == 0x5) {
+            System.out.println("LHU x" + rd + ", " + imm + "(x" + rs1 + ")");
+            result = this.mem.loadUnsignedHalfWord(rs1Data + imm);
+        } else {
+            System.out.println("Not a valid funct3: " + Integer.toBinaryString(funct3));
+        }
+
+        this.regs[rd].set(result);
     }
 
     private void executeI3(int rd, int funct3, int rs1, int imm, int imm_5_11) {
-        System.out.println("JALR not yet implemented");
+        System.out.println("JALR x" + rd + ", x" + rs1 + ", " + imm);
+        this.regs[rd].set(this.pc.getPC() + 4);
+        int rs1Data = this.regs[rs1].get();
+        this.pc.setPc(rs1Data + imm);
     }
 
     private void executeI4(int rd, int funct3, int rs1, int imm, int imm_5_11) {
@@ -128,7 +153,21 @@ public class Control {
     }
 
     private void executeS(int funct3, int rs1, int rs2, int imm) {
-        System.out.println("Store operations not yet implemented");
+        int rs1Data = this.regs[rs1].get();
+        int rs2Data = this.regs[rs2].get();
+
+        if (funct3 == 0x0) {
+            System.out.println("SB x" + rs2 + ", " + imm + "(x" + rs1 + ")");
+            this.mem.storeByte(rs1Data + imm, rs2Data);
+        } else if (funct3 == 0x1) {
+            System.out.println("SH x" + rs2 + ", " + imm + "(x" + rs1 + ")");
+            this.mem.storeHalfWord(rs1Data + imm, rs2Data);
+        } else if (funct3 == 0x2) {
+            System.out.println("SW x" + rs2 + ", " + imm + "(x" + rs1 + ")");
+            this.mem.storeWord(rs1Data + imm, rs2Data);
+        } else {
+            System.out.println("Not a valid funct3: " + Integer.toBinaryString(funct3));
+        }
     }
 
     private void executeB(int funct3, int rs1, int rs2, int imm) {
@@ -192,7 +231,9 @@ public class Control {
     }
 
     private void executeJ(int rd, int imm) {
-        System.out.println("JAL not yet implemented");
+        System.out.println("JAL x" + rd + ", " + imm);
+        this.regs[rd].set(this.pc.getPC() + 4);
+        this.pc.jump(imm);
     }
 
     private void executeInstruction(int instruction) {
@@ -327,9 +368,9 @@ public class Control {
     }
 
     public static void main(String[] args) throws IOException {
-        int[] program = Read.readBin("tests/task2/branchtrap.bin");
+        int[] program = Read.readBin("tests/task3/recursive.bin");
 
-        Control control = new Control(1024, program);
+        Control control = new Control(1_048_576, program);
 
         control.executeProgram();
     }

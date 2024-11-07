@@ -23,4 +23,8 @@ public class ProgramCounter {
         this.jump = true;
         this.jumpOffset = offset;
     }
+
+    public void setPc(int pc) {
+        this.pc = pc - 4;
+    }
 }
