@@ -2,10 +2,16 @@ import java.io.IOException;
 
 public class Control {
     private final boolean PRINT_INSTRUCTIONS = false;
-    private Register[] regs;
 
-    public Control() {
+    private Register[] regs;
+    private MemoryFile mem;
+    private ProgramCounter pc;
+
+    public Control(int memSize, int[] program) {
         initRegs();
+        this.regs[2].set(memSize-4); // x2 = sp
+        this.mem = new MemoryFile(memSize, program);
+        this.pc = new ProgramCounter();
     }
 
     private void initRegs() {
@@ -13,6 +19,7 @@ public class Control {
         for (int i = 0; i < 32; i++) {
             this.regs[i] = new Register(i);
         }
+
     }
 
     private void executeR(int rd, int funct3, int rs1, int rs2, int funct7) {
@@ -125,16 +132,63 @@ public class Control {
     }
 
     private void executeB(int funct3, int rs1, int rs2, int imm) {
-        System.out.println("Branch operations not yet implemented");
+        int rs1Data = this.regs[rs1].get();
+        int rs2Data = this.regs[rs2].get();
+
+        switch (funct3) {
+            case 0x0:
+                System.out.println("BEQ x" + rs1 + ", x" + rs2 + ", " + imm);
+                if (rs1Data == rs2Data) {
+                    this.pc.jump(imm);
+                }
+                break;
+
+            case 0x1:
+                System.out.println("BNE x" + rs1 + ", x" + rs2 + ", " + imm);
+                if (rs1Data != rs2Data) {
+                    this.pc.jump(imm);
+                }
+                break;
+
+            case 0x4:
+                System.out.println("BLT x" + rs1 + ", x" + rs2 + ", " + imm);
+                if (rs1Data < rs2Data) {
+                    this.pc.jump(imm);
+                }
+                break;
+
+            case 0x5:
+                System.out.println("BGE x" + rs1 + ", x" + rs2 + ", " + imm);
+                if (rs1Data >= rs2Data) {
+                    this.pc.jump(imm);
+                }
+                break;
+
+            case 0x6:
+                System.out.println("BLTU x" + rs1 + ", x" + rs2 + ", " + imm);
+                if (Integer.toUnsignedLong(rs1Data) < rs2Data) {
+                    this.pc.jump(imm);
+                }
+                break;
+
+            case 0x7:
+                System.out.println("BGEU x" + rs1 + ", x" + rs2 + ", " + imm);
+                if (Integer.toUnsignedLong(rs1Data) >= rs2Data) {
+                    this.pc.jump(imm);
+                }
+                break;
+        }
     }
 
-    private void executeU1(int rd, int imm) { // LUI
-        System.out.println("LUI x" + rd + ", " + imm);
-        this.regs[rd].set(imm);
+    private void executeU1(int rd, int upperImm) { // LUI
+        System.out.println("LUI x" + rd + ", " + upperImm);
+        this.regs[rd].set(upperImm);
     }
 
-    private void executeU2(int rd, int imm) { // AUIPC
-        System.out.println("AUIPC not yet implemented");
+    private void executeU2(int rd, int upperImm) { // AUIPC
+        System.out.println("AUIPC x" + rd + ", " + upperImm);
+        int pc = this.pc.getPC();
+        this.regs[rd].set(pc + upperImm);
     }
 
     private void executeJ(int rd, int imm) {
@@ -168,7 +222,7 @@ public class Control {
                 rs1 = Read.getRs1(instruction);
                 imm = Read.getImmI(instruction);
                 if (imm >= 0x800) {
-                    imm = imm - 0x1000;
+                    imm -= 0x1000;
                 }
                 int imm_5_11 = (imm >> 5) & 0x7F;
 
@@ -203,7 +257,6 @@ public class Control {
                 imm = Read.getImmS(instruction);
 
                 executeS(funct3, rs1, rs2, imm);
-
                 break;
 
             case 0b1100011: // B-type
@@ -213,7 +266,6 @@ public class Control {
                 imm = Read.getImmB(instruction);
 
                 executeB(funct3, rs1, rs2, imm);
-
                 break;
 
             case 0b0110111, 0b0010111: // U-type
@@ -250,17 +302,19 @@ public class Control {
         }
     }
 
-    public void executeProgram(int[] program) {
-        for (int i = 0; i < program.length; i++) {
-            int instruction = program[i];
+    public void executeProgram() {
+        while (true) {
+            int instruction = this.mem.loadWord(this.pc.getPC());
 
             if (PRINT_INSTRUCTIONS) {
                 String instructionString = Integer.toBinaryString(instruction);
                 instructionString = "0".repeat(32 - instructionString.length()) + instructionString;
-                System.out.println("\nInstruction " + i + ": " + instructionString);
+                System.out.println("\nInstruction address " + this.pc.getPC() + ": " + instructionString);
             }
 
             executeInstruction(instruction);
+
+            this.pc.updatePC();
         }
     }
 
@@ -273,10 +327,10 @@ public class Control {
     }
 
     public static void main(String[] args) throws IOException {
-        Control control = new Control();
+        int[] program = Read.readBin("tests/task2/branchtrap.bin");
 
-        int[] program = Read.readBin("tests/task1/addlarge.bin");
+        Control control = new Control(1024, program);
 
-        control.executeProgram(program);
+        control.executeProgram();
     }
 }
