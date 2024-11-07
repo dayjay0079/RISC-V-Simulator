@@ -102,7 +102,7 @@ public class Read {
     }
 
     public static int getImmU(int instruction) {
-        return instruction >>> 12;
+        return instruction & 0xfffff000;
     }
 
     public static int getImmJ(int instruction) {

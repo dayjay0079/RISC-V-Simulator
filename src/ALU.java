@@ -48,7 +48,7 @@ public class ALU {
 
     // Set Less Than (Unsigned)
     public static int sltu(int a, int b) {
-        return (Integer.toUnsignedLong(a) < b) ? 1 : 0;
+        return (a < b) ? 1 : 0;
     }
 
     public static void main(String[] args) {

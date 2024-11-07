@@ -1,20 +1,23 @@
 import java.io.IOException;
 
 public class Control {
-    private static Register[] regs;
+    private final boolean PRINT_INSTRUCTIONS = false;
+    private Register[] regs;
 
-    public static void initRegs() {
-        regs = new Register[32];
+    public Control() {
+        initRegs();
+    }
+
+    private void initRegs() {
+        this.regs = new Register[32];
         for (int i = 0; i < 32; i++) {
-            regs[i] = new Register(i);
+            this.regs[i] = new Register(i);
         }
     }
 
-    private static void executeR(int rd, int funct3, int rs1, int rs2, int funct7) {
-//        System.out.println("R-type operation");
-
-        int rs1Data = regs[rs1].get();
-        int rs2Data = regs[rs2].get();
+    private void executeR(int rd, int funct3, int rs1, int rs2, int funct7) {
+        int rs1Data = this.regs[rs1].get();
+        int rs2Data = this.regs[rs2].get();
         int result = 0;
 
         if (funct3 == 0x0 && funct7 == 0x00) {
@@ -50,15 +53,13 @@ public class Control {
         } else {
             System.out.println("Not a valid funct3: " + Integer.toBinaryString(funct3) +
                     " and funct7: " + Integer.toBinaryString(funct7));
-//            System.exit(0);
         }
 
-        regs[rd].set(result);
+        this.regs[rd].set(result);
     }
 
-    private static void executeI1(int rd, int funct3, int rs1, int imm, int imm_5_11) {
-
-        int rs1Data = regs[rs1].get();
+    private void executeI1(int rd, int funct3, int rs1, int imm, int imm_5_11) {
+        int rs1Data = this.regs[rs1].get();
         int result = 0;
 
         if (funct3 == 0x0) {
@@ -87,51 +88,60 @@ public class Control {
             result = ALU.slt(rs1Data, imm);
         } else if (funct3 == 0x3) {
             System.out.println("SLTIU x" + rd + ", x" + rs1 + ", " + imm);
-            result = ALU.sltu(rs1Data, imm);
+            result = ALU.sltu(rs1Data, imm & 0xFFF);
         } else {
             System.out.println("Not a valid funct3: " + Integer.toBinaryString(funct3));
-//            System.exit(0);
         }
 
-        regs[rd].set(result);
+        this.regs[rd].set(result);
     }
 
-    private static void executeI2(int rd, int funct3, int rs1, int imm, int imm_5_11) {
+    private void executeI2(int rd, int funct3, int rs1, int imm, int imm_5_11) {
         System.out.println("Load operations not yet implemented");
-//        System.exit(1);
     }
 
-    private static void executeI3(int rd, int funct3, int rs1, int imm, int imm_5_11) {
+    private void executeI3(int rd, int funct3, int rs1, int imm, int imm_5_11) {
         System.out.println("JALR not yet implemented");
-//        System.exit(1);
     }
 
-    private static void executeI4(int rd, int funct3, int rs1, int imm, int imm_5_11) {
-        System.out.println("ECALL not yet implemented");
-//        System.exit(1);
+    private void executeI4(int rd, int funct3, int rs1, int imm, int imm_5_11) {
+        int rs17Data = this.regs[17].get();
+
+        if (funct3 == 0x0 && imm == 0x0) {
+            System.out.print("ECALL: ");
+            if (rs17Data == 10) {
+                System.out.println("Program terminated");
+                terminate();
+            } else {
+                System.out.println("ECALL code " + rs17Data + " not yet implemented");
+            }
+        } else {
+            System.out.println("Not a valid ECALL immediate: " + imm);
+        }
     }
 
-    private static void executeS(int funct3, int rs1, int rs2, int imm) {
+    private void executeS(int funct3, int rs1, int rs2, int imm) {
         System.out.println("Store operations not yet implemented");
-//        System.exit(1);
     }
 
-    private static void executeB(int funct3, int rs1, int rs2, int imm) {
+    private void executeB(int funct3, int rs1, int rs2, int imm) {
         System.out.println("Branch operations not yet implemented");
-//        System.exit(1);
     }
 
-    private static void executeU(int rd, int imm) {
-        System.out.println("LUI and AUIPC not yet implemented");
-//        System.exit(1);
+    private void executeU1(int rd, int imm) { // LUI
+        System.out.println("LUI x" + rd + ", " + imm);
+        this.regs[rd].set(imm);
     }
 
-    private static void executeJ(int rd, int imm) {
+    private void executeU2(int rd, int imm) { // AUIPC
+        System.out.println("AUIPC not yet implemented");
+    }
+
+    private void executeJ(int rd, int imm) {
         System.out.println("JAL not yet implemented");
-//        System.exit(1);
     }
 
-    public static void executeInstruction(int instruction) {
+    private void executeInstruction(int instruction) {
         int opcode = Read.getOpcode(instruction);
         int rd = 0;
         int funct3 = 0;
@@ -157,7 +167,10 @@ public class Control {
                 funct3 = Read.getFunct3(instruction);
                 rs1 = Read.getRs1(instruction);
                 imm = Read.getImmI(instruction);
-                int imm_5_11 = imm >>> 5;
+                if (imm >= 0x800) {
+                    imm = imm - 0x1000;
+                }
+                int imm_5_11 = (imm >> 5) & 0x7F;
 
                 switch (opcode) {
                     case 0b0010011: // I-type 1 (ALU-Immediate operations)
@@ -178,7 +191,6 @@ public class Control {
 
                     default:
                         System.out.println("Opcode " + Integer.toBinaryString(opcode) + " invalid");
-//                        System.exit(1);
                 }
 
 
@@ -204,11 +216,22 @@ public class Control {
 
                 break;
 
-            case 0b0110111: // U-type
+            case 0b0110111, 0b0010111: // U-type
                 rd = Read.getRd(instruction);
                 imm = Read.getImmU(instruction);
 
-                executeU(rd, imm);
+                switch (opcode) {
+                    case 0b0110111: // LUI
+                        executeU1(rd, imm);
+                        break;
+
+                    case 0b0010111: // AUIPC
+                        executeU2(rd, imm);
+                        break;
+
+                    default:
+                        System.out.println("Opcode " + Integer.toBinaryString(opcode) + " invalid");
+                }
 
                 break;
                 
@@ -224,19 +247,10 @@ public class Control {
                 String opcodeString = Integer.toBinaryString(opcode);
                 opcodeString = "0".repeat(7 - opcodeString.length()) + opcodeString;
                 System.out.println("Opcode " + opcodeString + " invalid");
-//                System.exit(1);
         }
     }
 
-    private static final boolean PRINT_INSTRUCTIONS = false;
-    public static void main(String[] args) throws IOException {
-        initRegs();
-
-        // The problem is that in .bin files don't save the instructions as lines, but just as one long sequence of bits.
-        // We need to read the file slightly differently.
-        int[] program = Read.readBin("tests/task1/addneg.bin");
-
-        System.out.println("Program length: " + program.length);
+    public void executeProgram(int[] program) {
         for (int i = 0; i < program.length; i++) {
             int instruction = program[i];
 
@@ -248,5 +262,21 @@ public class Control {
 
             executeInstruction(instruction);
         }
+    }
+
+    private void terminate() {
+        System.out.println("\nFinal register values:");
+        for (int i = 0; i < 32; i++) {
+            System.out.println("x" + i + ": " + this.regs[i].get());
+        }
+        System.exit(0);
+    }
+
+    public static void main(String[] args) throws IOException {
+        Control control = new Control();
+
+        int[] program = Read.readBin("tests/task1/addlarge.bin");
+
+        control.executeProgram(program);
     }
 }
