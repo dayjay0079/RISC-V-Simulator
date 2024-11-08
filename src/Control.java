@@ -1,7 +1,7 @@
 import java.io.IOException;
 
 public class Control {
-    private final boolean DEBUG_PRINT = false;
+    private static final boolean DEBUG_PRINT = false;
 
     private boolean execute;
     private final String[] regStrings = new String[32];

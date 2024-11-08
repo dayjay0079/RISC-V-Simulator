@@ -3,18 +3,10 @@ import java.io.*;
 
 public class Read {
     private static boolean DEBUG = true;
-    public static int[] read(String path) {
+    public static int[] read(String path) throws FileNotFoundException {
         File file = new File(path);
-        Scanner count = null;
-        Scanner in = null;
-        try {
-            count = new Scanner(file);
-            in = new Scanner(file);
-        } catch (FileNotFoundException e) {
-            System.out.println("File not found. Printing stack trace:");
-            e.printStackTrace();
-            System.exit(1);
-        }
+        Scanner count = new Scanner(file);
+        Scanner in =  new Scanner(file);
 
         // Count amount of instructions
         int lineCount = 0;

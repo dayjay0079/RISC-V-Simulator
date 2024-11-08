@@ -44,5 +44,4 @@ public class MemoryFile {
         storeHalfWord(address, value >>> 16);
         storeHalfWord(address + 2, value);
     }
-
 }

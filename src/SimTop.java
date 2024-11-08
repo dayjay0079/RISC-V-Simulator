@@ -58,7 +58,6 @@ public class SimTop {
         Control control = new Control(memSize, program, printInstructions);
         control.executeProgram();
 
-
         System.out.println("\nProgram successfully executed!");
         System.out.println("Final register values:");
         control.printRegisters();
