@@ -37,14 +37,7 @@ public class Read {
 
     public static int[] readBin(String path) throws IOException {
         File file = new File(path);
-        InputStream in = null;
-        try {
-            in = new DataInputStream(new FileInputStream(file));
-        } catch (FileNotFoundException e) {
-            System.out.println("File not found. Printing stack trace:");
-            e.printStackTrace();
-            System.exit(1);
-        }
+        InputStream in = new DataInputStream(new FileInputStream(file));
 
         // Store file in byte array
         byte[] program =  in.readAllBytes();

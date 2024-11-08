@@ -1,61 +1,68 @@
 import java.io.IOException;
 
 public class Control {
-    private final boolean PRINT_INSTRUCTIONS = false;
+    private final boolean DEBUG_PRINT = false;
 
-    private Register[] regs;
-    private MemoryFile mem;
-    private ProgramCounter pc;
+    private boolean execute;
+    private final String[] regStrings = new String[32];
 
-    public Control(int memSize, int[] program) {
-        initRegs();
-        this.regs[2].set(memSize-4); // x2 = sp
+    private final Register[] regs = new Register[32];
+    private final MemoryFile mem;
+    private final ProgramCounter pc;
+
+    private final boolean printInstructions;
+    private String instructionString;
+
+    public Control(int memSize, int[] program, boolean printInstructions) {
+        this.execute = true;
+        initRegs(memSize);
         this.mem = new MemoryFile(memSize, program);
         this.pc = new ProgramCounter();
+        this.printInstructions = printInstructions;
+        this.instructionString = "";
     }
 
-    private void initRegs() {
-        this.regs = new Register[32];
+    private void initRegs(int memSize) {
         for (int i = 0; i < 32; i++) {
             this.regs[i] = new Register(i);
         }
-
+        this.regs[2].set(memSize-4); // x2 = sp
     }
 
-    private void executeR(int rd, int funct3, int rs1, int rs2, int funct7) {
+    private void excArithmetic(int rd, int funct3, int rs1, int rs2, int funct7) {
         int rs1Data = this.regs[rs1].get();
         int rs2Data = this.regs[rs2].get();
         int result = 0;
 
         if (funct3 == 0x0 && funct7 == 0x00) {
-            System.out.println("ADD x" + rd + ", x" + rs1 + ", x" + rs2);
+            this.instructionString = ("ADD x" + rd + ", x" + rs1 + ", x" + rs2);
             result = ALU.add(rs1Data, rs2Data);
         } else if (funct3 == 0x0 && funct7 == 0x20) {
-            System.out.println("SUB x" + rd + ", x" + rs1 + ", x" + rs2);
+            this.instructionString = ("SUB x" + rd + ", x" + rs1 + ", x" + rs2);
             result = ALU.sub(rs1Data, rs2Data);
         } else if (funct3 == 0x4 && funct7 == 0x00) {
-            System.out.println("XOR x" + rd + ", x" + rs1 + ", x" + rs2);
+            this.instructionString = ("XOR x" + rd + ", x" + rs1 + ", x" + rs2);
             result = ALU.xor(rs1Data, rs2Data);
         } else if (funct3 == 0x6 && funct7 == 0x00) {
-            System.out.println("OR x" + rd + ", x" + rs1 + ", x" + rs2);
+            this.instructionString = ("OR x" + rd + ", x" + rs1 + ", x" + rs2);
             result = ALU.or(rs1Data, rs2Data);
         } else if (funct3 == 0x7 && funct7 == 0x00) {
-            System.out.println("AND x" + rd + ", x" + rs1 + ", x" + rs2);
+            this.instructionString = ("AND x" + rd + ", x" + rs1 + ", x" + rs2);
             result = ALU.and(rs1Data, rs2Data);
         } else if (funct3 == 0x1 && funct7 == 0x00) {
-            System.out.println("SLL x" + rd + ", x" + rs1 + ", x" + rs2);
+            this.instructionString = ("SLL x" + rd + ", x" + rs1 + ", x" + rs2);
             result = ALU.sll(rs1Data, rs2Data);
         } else if (funct3 == 0x5 && funct7 == 0x00) {
-            System.out.println("SRL x" + rd + ", x" + rs1 + ", x" + rs2);
+            this.instructionString = ("SRL x" + rd + ", x" + rs1 + ", x" + rs2);
             result = ALU.srl(rs1Data, rs2Data);
         } else if (funct3 == 0x5 && funct7 == 0x20) {
-            System.out.println("SRA x" + rd + ", x" + rs1 + ", x" + rs2);
+            this.instructionString = ("SRA x" + rd + ", x" + rs1 + ", x" + rs2);
             result = ALU.sra(rs1Data, rs2Data);
         } else if (funct3 == 0x2 && funct7 == 0x00) {
-            System.out.println("SLT x" + rd + ", x" + rs1 + ", x" + rs2);
+            this.instructionString = ("SLT x" + rd + ", x" + rs1 + ", x" + rs2);
             result = ALU.slt(rs1Data, rs2Data);
         } else if (funct3 == 0x3 && funct7 == 0x00) {
-            System.out.println("SLTU x" + rd + ", x" + rs1 + ", x" + rs2);
+            this.instructionString = ("SLTU x" + rd + ", x" + rs1 + ", x" + rs2);
             result = ALU.sltu(rs1Data, rs2Data);
         } else {
             System.out.println("Not a valid funct3: " + Integer.toBinaryString(funct3) +
@@ -65,36 +72,36 @@ public class Control {
         this.regs[rd].set(result);
     }
 
-    private void executeI1(int rd, int funct3, int rs1, int imm, int imm_5_11) {
+    private void excArithmeticImm(int rd, int funct3, int rs1, int imm, int imm_5_11) {
         int rs1Data = this.regs[rs1].get();
         int result = 0;
 
         if (funct3 == 0x0) {
-            System.out.println("ADDI x" + rd + ", x" + rs1 + ", " + imm);
+            this.instructionString = ("ADDI x" + rd + ", x" + rs1 + ", " + imm);
             result = ALU.add(rs1Data, imm);
         } else if (funct3 == 0x4) {
-            System.out.println("XORI x" + rd + ", x" + rs1 + ", " + imm);
+            this.instructionString = ("XORI x" + rd + ", x" + rs1 + ", " + imm);
             result = ALU.xor(rs1Data, imm);
         } else if (funct3 == 0x6) {
-            System.out.println("ORI x" + rd + ", x" + rs1 + ", " + imm);
+            this.instructionString = ("ORI x" + rd + ", x" + rs1 + ", " + imm);
             result = ALU.or(rs1Data, imm);
         } else if (funct3 == 0x7) {
-            System.out.println("ANDI x" + rd + ", x" + rs1 + ", " + imm);
+            this.instructionString = ("ANDI x" + rd + ", x" + rs1 + ", " + imm);
             result = ALU.and(rs1Data, imm);
         } else if (funct3 == 0x1 && imm_5_11 == 0x00) {
-            System.out.println("SLLI x" + rd + ", x" + rs1 + ", " + imm);
+            this.instructionString = ("SLLI x" + rd + ", x" + rs1 + ", " + imm);
             result = ALU.sll(rs1Data, imm);
         } else if (funct3 == 0x5 && imm_5_11 == 0x00) {
-            System.out.println("SRLI x" + rd + ", x" + rs1 + ", " + imm);
+            this.instructionString = ("SRLI x" + rd + ", x" + rs1 + ", " + imm);
             result = ALU.srl(rs1Data, imm);
         } else if (funct3 == 0x5 && imm_5_11 == 0x20) {
-            System.out.println("SRAI x" + rd + ", x" + rs1 + ", " + imm);
+            this.instructionString = ("SRAI x" + rd + ", x" + rs1 + ", " + imm);
             result = ALU.sra(rs1Data, imm);
         } else if (funct3 == 0x2) {
-            System.out.println("SLTI x" + rd + ", x" + rs1 + ", " + imm);
+            this.instructionString = ("SLTI x" + rd + ", x" + rs1 + ", " + imm);
             result = ALU.slt(rs1Data, imm);
         } else if (funct3 == 0x3) {
-            System.out.println("SLTIU x" + rd + ", x" + rs1 + ", " + imm);
+            this.instructionString = ("SLTIU x" + rd + ", x" + rs1 + ", " + imm);
             result = ALU.sltu(rs1Data, imm & 0xFFF);
         } else {
             System.out.println("Not a valid funct3: " + Integer.toBinaryString(funct3));
@@ -103,24 +110,24 @@ public class Control {
         this.regs[rd].set(result);
     }
 
-    private void executeI2(int rd, int funct3, int rs1, int imm, int imm_5_11) {
+    private void excLoad(int rd, int funct3, int rs1, int imm) {
         int rs1Data = this.regs[rs1].get();
         int result = 0;
 
         if (funct3 == 0x0) {
-            System.out.println("LB x" + rd + ", " + imm + "(x" + rs1 + ")");
+            this.instructionString = ("LB x" + rd + ", " + imm + "(x" + rs1 + ")");
             result = this.mem.loadByte(rs1Data + imm);
         } else if (funct3 == 0x1) {
-            System.out.println("LH x" + rd + ", " + imm + "(x" + rs1 + ")");
+            this.instructionString = ("LH x" + rd + ", " + imm + "(x" + rs1 + ")");
             result = this.mem.loadHalfWord(rs1Data + imm);
         } else if (funct3 == 0x2) {
-            System.out.println("LW x" + rd + ", " + imm + "(x" + rs1 + ")");
+            this.instructionString = ("LW x" + rd + ", " + imm + "(x" + rs1 + ")");
             result = this.mem.loadWord(rs1Data + imm);
         } else if (funct3 == 0x4) {
-            System.out.println("LBU x" + rd + ", " + imm + "(x" + rs1 + ")");
+            this.instructionString = ("LBU x" + rd + ", " + imm + "(x" + rs1 + ")");
             result = this.mem.loadUnsignedByte(rs1Data + imm);
         } else if (funct3 == 0x5) {
-            System.out.println("LHU x" + rd + ", " + imm + "(x" + rs1 + ")");
+            this.instructionString = ("LHU x" + rd + ", " + imm + "(x" + rs1 + ")");
             result = this.mem.loadUnsignedHalfWord(rs1Data + imm);
         } else {
             System.out.println("Not a valid funct3: " + Integer.toBinaryString(funct3));
@@ -129,20 +136,19 @@ public class Control {
         this.regs[rd].set(result);
     }
 
-    private void executeI3(int rd, int funct3, int rs1, int imm, int imm_5_11) {
-        System.out.println("JALR x" + rd + ", x" + rs1 + ", " + imm);
+    private void excJALR(int rd, int funct3, int rs1, int imm) {
+        this.instructionString = ("JALR x" + rd + ", x" + rs1 + ", " + imm);
         this.regs[rd].set(this.pc.getPC() + 4);
         int rs1Data = this.regs[rs1].get();
         this.pc.setPc(rs1Data + imm);
     }
 
-    private void executeI4(int rd, int funct3, int rs1, int imm, int imm_5_11) {
+    private void excECALL(int rd, int funct3, int rs1, int imm) {
         int rs17Data = this.regs[17].get();
 
         if (funct3 == 0x0 && imm == 0x0) {
-            System.out.print("ECALL: ");
             if (rs17Data == 10) {
-                System.out.println("Program terminated");
+                this.instructionString = ("ECALL: Program terminated");
                 terminate();
             } else {
                 System.out.println("ECALL code " + rs17Data + " not yet implemented");
@@ -152,66 +158,66 @@ public class Control {
         }
     }
 
-    private void executeS(int funct3, int rs1, int rs2, int imm) {
+    private void excStore(int funct3, int rs1, int rs2, int imm) {
         int rs1Data = this.regs[rs1].get();
         int rs2Data = this.regs[rs2].get();
 
         if (funct3 == 0x0) {
-            System.out.println("SB x" + rs2 + ", " + imm + "(x" + rs1 + ")");
+            this.instructionString = ("SB x" + rs2 + ", " + imm + "(x" + rs1 + ")");
             this.mem.storeByte(rs1Data + imm, rs2Data);
         } else if (funct3 == 0x1) {
-            System.out.println("SH x" + rs2 + ", " + imm + "(x" + rs1 + ")");
+            this.instructionString = ("SH x" + rs2 + ", " + imm + "(x" + rs1 + ")");
             this.mem.storeHalfWord(rs1Data + imm, rs2Data);
         } else if (funct3 == 0x2) {
-            System.out.println("SW x" + rs2 + ", " + imm + "(x" + rs1 + ")");
+            this.instructionString = ("SW x" + rs2 + ", " + imm + "(x" + rs1 + ")");
             this.mem.storeWord(rs1Data + imm, rs2Data);
         } else {
             System.out.println("Not a valid funct3: " + Integer.toBinaryString(funct3));
         }
     }
 
-    private void executeB(int funct3, int rs1, int rs2, int imm) {
+    private void excBranch(int funct3, int rs1, int rs2, int imm) {
         int rs1Data = this.regs[rs1].get();
         int rs2Data = this.regs[rs2].get();
 
         switch (funct3) {
             case 0x0:
-                System.out.println("BEQ x" + rs1 + ", x" + rs2 + ", " + imm);
+                this.instructionString = ("BEQ x" + rs1 + ", x" + rs2 + ", " + imm);
                 if (rs1Data == rs2Data) {
                     this.pc.jump(imm);
                 }
                 break;
 
             case 0x1:
-                System.out.println("BNE x" + rs1 + ", x" + rs2 + ", " + imm);
+                this.instructionString = ("BNE x" + rs1 + ", x" + rs2 + ", " + imm);
                 if (rs1Data != rs2Data) {
                     this.pc.jump(imm);
                 }
                 break;
 
             case 0x4:
-                System.out.println("BLT x" + rs1 + ", x" + rs2 + ", " + imm);
+                this.instructionString = ("BLT x" + rs1 + ", x" + rs2 + ", " + imm);
                 if (rs1Data < rs2Data) {
                     this.pc.jump(imm);
                 }
                 break;
 
             case 0x5:
-                System.out.println("BGE x" + rs1 + ", x" + rs2 + ", " + imm);
+                this.instructionString = ("BGE x" + rs1 + ", x" + rs2 + ", " + imm);
                 if (rs1Data >= rs2Data) {
                     this.pc.jump(imm);
                 }
                 break;
 
             case 0x6:
-                System.out.println("BLTU x" + rs1 + ", x" + rs2 + ", " + imm);
+                this.instructionString = ("BLTU x" + rs1 + ", x" + rs2 + ", " + imm);
                 if (Integer.toUnsignedLong(rs1Data) < rs2Data) {
                     this.pc.jump(imm);
                 }
                 break;
 
             case 0x7:
-                System.out.println("BGEU x" + rs1 + ", x" + rs2 + ", " + imm);
+                this.instructionString = ("BGEU x" + rs1 + ", x" + rs2 + ", " + imm);
                 if (Integer.toUnsignedLong(rs1Data) >= rs2Data) {
                     this.pc.jump(imm);
                 }
@@ -219,19 +225,19 @@ public class Control {
         }
     }
 
-    private void executeU1(int rd, int upperImm) { // LUI
-        System.out.println("LUI x" + rd + ", " + upperImm);
+    private void excLUI(int rd, int upperImm) { // LUI
+        this.instructionString = ("LUI x" + rd + ", " + upperImm);
         this.regs[rd].set(upperImm);
     }
 
-    private void executeU2(int rd, int upperImm) { // AUIPC
-        System.out.println("AUIPC x" + rd + ", " + upperImm);
+    private void excAUIPC(int rd, int upperImm) { // AUIPC
+        this.instructionString = ("AUIPC x" + rd + ", " + upperImm);
         int pc = this.pc.getPC();
         this.regs[rd].set(pc + upperImm);
     }
 
-    private void executeJ(int rd, int imm) {
-        System.out.println("JAL x" + rd + ", " + imm);
+    private void excJAL(int rd, int imm) {
+        this.instructionString = ("JAL x" + rd + ", " + imm);
         this.regs[rd].set(this.pc.getPC() + 4);
         this.pc.jump(imm);
     }
@@ -253,7 +259,7 @@ public class Control {
                 rs2 = Read.getRs2(instruction);
                 funct7 = Read.getFunct7(instruction);
 
-                executeR(rd, funct3, rs1, rs2, funct7);
+                excArithmetic(rd, funct3, rs1, rs2, funct7);
 
                 break;
 
@@ -269,19 +275,19 @@ public class Control {
 
                 switch (opcode) {
                     case 0b0010011: // I-type 1 (ALU-Immediate operations)
-                        executeI1(rd, funct3, rs1, imm, imm_5_11);
+                        excArithmeticImm(rd, funct3, rs1, imm, imm_5_11);
                         break;
 
                     case 0b0000011: // I-type 2 (Load operations)
-                        executeI2(rd, funct3, rs1, imm, imm_5_11);
+                        excLoad(rd, funct3, rs1, imm);
                         break;
 
                     case 0b1100111: // I-type 3 (JALR)
-                        executeI3(rd, funct3, rs1, imm, imm_5_11);
+                        excJALR(rd, funct3, rs1, imm);
                         break;
 
                     case 0b1110011: // I-type 4 (ECALL)
-                        executeI4(rd, funct3, rs1, imm, imm_5_11);
+                        excECALL(rd, funct3, rs1, imm);
                         break;
 
                     default:
@@ -297,7 +303,7 @@ public class Control {
                 rs2 = Read.getRs2(instruction);
                 imm = Read.getImmS(instruction);
 
-                executeS(funct3, rs1, rs2, imm);
+                excStore(funct3, rs1, rs2, imm);
                 break;
 
             case 0b1100011: // B-type
@@ -306,7 +312,7 @@ public class Control {
                 rs2 = Read.getRs2(instruction);
                 imm = Read.getImmB(instruction);
 
-                executeB(funct3, rs1, rs2, imm);
+                excBranch(funct3, rs1, rs2, imm);
                 break;
 
             case 0b0110111, 0b0010111: // U-type
@@ -315,11 +321,11 @@ public class Control {
 
                 switch (opcode) {
                     case 0b0110111: // LUI
-                        executeU1(rd, imm);
+                        excLUI(rd, imm);
                         break;
 
                     case 0b0010111: // AUIPC
-                        executeU2(rd, imm);
+                        excAUIPC(rd, imm);
                         break;
 
                     default:
@@ -332,7 +338,7 @@ public class Control {
                 rd = Read.getRd(instruction);
                 imm = Read.getImmJ(instruction);
 
-                executeJ(rd, imm);
+                excJAL(rd, imm);
 
                 break;
                 
@@ -347,7 +353,7 @@ public class Control {
         while (true) {
             int instruction = this.mem.loadWord(this.pc.getPC());
 
-            if (PRINT_INSTRUCTIONS) {
+            if (DEBUG_PRINT) {
                 String instructionString = Integer.toBinaryString(instruction);
                 instructionString = "0".repeat(32 - instructionString.length()) + instructionString;
                 System.out.println("\nInstruction address " + this.pc.getPC() + ": " + instructionString);
@@ -355,22 +361,55 @@ public class Control {
 
             executeInstruction(instruction);
 
+            if (this.printInstructions) {
+                System.out.println(this.instructionString);
+            }
+
+            if (!this.execute) {
+                break;
+            }
+
             this.pc.updatePC();
         }
     }
 
     private void terminate() {
-        System.out.println("\nFinal register values:");
+        this.execute = false;
+        saveCurrentRegisters();
+    }
+
+    private void resetRegStrings() {
         for (int i = 0; i < 32; i++) {
-            System.out.println("x" + i + ": " + this.regs[i].get());
+            this.regStrings[i] = "x" + i + (i < 10 ? "  = 0x" : " = 0x");
         }
-        System.exit(0);
+    }
+
+    public int[] getAllRegValues() {
+        int[] regValues = new int[32];
+        for (int i = 0; i < 32; i++) {
+            regValues[i] = this.regs[i].get();
+        }
+        return regValues;
+    }
+
+    private void saveCurrentRegisters() {
+        resetRegStrings();
+        for (int i = 0; i < 32; i++) {
+            String outputHex = Integer.toHexString(this.regs[i].get());
+            this.regStrings[i] += "0".repeat(8 - outputHex.length()) + outputHex;
+        }
+    }
+
+    public void printRegisters() {
+        for (int i = 0; i < 32; i++) {
+            System.out.println(this.regStrings[i]);
+        }
     }
 
     public static void main(String[] args) throws IOException {
         int[] program = Read.readBin("tests/task3/recursive.bin");
 
-        Control control = new Control(1_048_576, program);
+        Control control = new Control((int)Math.pow(2, 20), program, true);
 
         control.executeProgram();
     }
