@@ -4,10 +4,10 @@ public class MemoryFile {
     public MemoryFile(int memSize, int[] program) {
         this.data = new byte[memSize];
         for (int i = 0; i < program.length; i++) {
-            this.data[4*i] = (byte)((program[i] & 0xFF000000) >>> 24);
-            this.data[4*i+1] = (byte)((program[i] & 0xFF0000) >>> 16);
-            this.data[4*i+2] = (byte)((program[i] & 0xFF00) >>> 8);
-            this.data[4*i+3] = (byte)(program[i] & 0xFF);
+            this.data[4*i+0] = (byte)((program[i] & 0xFF000000) >>> 24);
+            this.data[4*i+1] = (byte)((program[i] & 0x00FF0000) >>> 16);
+            this.data[4*i+2] = (byte)((program[i] & 0x0000FF00) >>> 8);
+            this.data[4*i+3] = (byte)((program[i] & 0x000000FF) >>> 0);
         }
     }
 
