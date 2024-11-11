@@ -4,10 +4,10 @@ public class MemoryFile {
     public MemoryFile(int memSize, int[] program) {
         this.data = new byte[memSize];
         for (int i = 0; i < program.length; i++) {
-            this.data[4*i+0] = (byte)((program[i] & 0xFF000000) >>> 24);
-            this.data[4*i+1] = (byte)((program[i] & 0x00FF0000) >>> 16);
-            this.data[4*i+2] = (byte)((program[i] & 0x0000FF00) >>> 8);
-            this.data[4*i+3] = (byte)((program[i] & 0x000000FF) >>> 0);
+            this.data[4*i+0] = (byte)((program[i] & 0x000000FF) >>> 0);
+            this.data[4*i+1] = (byte)((program[i] & 0x0000FF00) >>> 8);
+            this.data[4*i+2] = (byte)((program[i] & 0x00FF0000) >>> 16);
+            this.data[4*i+3] = (byte)((program[i] & 0xFF000000) >>> 24);
         }
     }
 
@@ -16,11 +16,11 @@ public class MemoryFile {
     }
 
     public int loadHalfWord(int address) {
-        return loadByte(address) << 8 | (loadByte(address + 1) & 0xFF);
+        return loadByte(address+1) << 8 | (loadByte(address) & 0xFF);
     }
 
     public int loadWord(int address) {
-        return loadHalfWord(address) << 16 | (loadHalfWord(address + 2) & 0xFFFF);
+        return loadHalfWord(address+2) << 16 | (loadHalfWord(address) & 0xFFFF);
     }
 
     public int loadUnsignedByte(int address) {
@@ -37,11 +37,11 @@ public class MemoryFile {
     }
 
     public void storeHalfWord(int address, int value) {
-        storeByte(address, value >>> 8);
-        storeByte(address + 1, value);
+        storeByte(address, value);
+        storeByte(address+1, value >>> 8);
     }
     public void storeWord(int address, int value) {
-        storeHalfWord(address, value >>> 16);
-        storeHalfWord(address + 2, value);
+        storeHalfWord(address, value);
+        storeHalfWord(address+2, value >>> 16);
     }
 }
