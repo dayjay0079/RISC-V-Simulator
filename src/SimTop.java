@@ -45,7 +45,7 @@ public class SimTop {
     private static void checkResult(Control control) throws IOException {
         int[] regs = control.getAllRegValues();
         for (int i = 0; i < 32; i++) {
-            if ((regs[i] != resultTest[i]) && i != 2) {
+            if (regs[i] != resultTest[i]) {
                 System.out.println("Register " + i + " does not match the expected value.");
             }
         }
