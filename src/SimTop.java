@@ -2,21 +2,27 @@ import java.io.IOException;
 import java.util.Scanner;
 
 public class SimTop {
-    public static String path;
+    public static int memSize;
+    public static int[] program;
+    public static int[] resultTest;
+    public static boolean printInstructions;
 
-    private static int getMemSize(Scanner scanner) {
+    private static void getMemSize(Scanner scanner) {
         System.out.print("Size of the memory in MB: ");
         int memSizeMB = scanner.nextInt();
         scanner.nextLine();
-        return memSizeMB * (int) Math.pow(2, 20);
+        memSize = memSizeMB * (int) Math.pow(2, 20);
     }
 
-    private static int[] getProgram(Scanner scanner) {
+    private static void getProgram(Scanner scanner) {
         System.out.print("Path to the binary file: ");
-        path = scanner.nextLine();
+        String path = scanner.nextLine();
         while (true) {
+            String resultPath = path.replace(".bin", ".res");
             try {
-                return Read.readBin(path);
+                program = Read.readBin(path);
+                resultTest = Read.readBin(resultPath);
+                return;
             } catch (Exception e) {
                 System.out.println("File not found. Please enter a valid path.");
                 System.out.print("Path to the binary file: ");
@@ -25,7 +31,7 @@ public class SimTop {
         }
     }
 
-    private static boolean getPrintInstructions(Scanner scanner) {
+    private static void getPrintInstructions(Scanner scanner) {
         System.out.print("Should instructions be printed as they execute? (y/n): ");
         String print = scanner.nextLine().toLowerCase();
         while (!print.equals("y") && !print.equals("n")) {
@@ -33,16 +39,13 @@ public class SimTop {
             System.out.print("Should instructions be printed as they execute? (y/n): ");
             print = scanner.nextLine().toLowerCase();
         }
-        return print.equals("y");
+        printInstructions = print.equals("y");
     }
 
     private static void checkResult(Control control) throws IOException {
-        String resPath = path.replace(".bin", ".res");
-        int[] res = Read.readBin(resPath);
         int[] regs = control.getAllRegValues();
-        boolean match = true;
         for (int i = 0; i < 32; i++) {
-            if ((regs[i] != res[i]) && i != 2) {
+            if ((regs[i] != resultTest[i]) && i != 2) {
                 System.out.println("Register " + i + " does not match the expected value.");
             }
         }
@@ -50,9 +53,9 @@ public class SimTop {
 
     public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
-        int memSize = getMemSize(scanner);
-        int[] program = getProgram(scanner);
-        boolean printInstructions = getPrintInstructions(scanner);
+        getMemSize(scanner);
+        getProgram(scanner);
+        getPrintInstructions(scanner);
         scanner.close();
 
         Control control = new Control(memSize, program, printInstructions);
