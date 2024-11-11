@@ -12,11 +12,12 @@ public class MemoryFile {
     }
 
     public int loadByte(int address) {
-        return this.data[address];
+        int byteAddress = 3 - (address % 4);
+        return this.data[address/4*4 + byteAddress];
     }
 
     public int loadHalfWord(int address) {
-        return loadByte(address) << 8 | (loadByte(address + 1) & 0xFF);
+        return this.data[address] << 8 | (this.data[address + 1] & 0xFF);
     }
 
     public int loadWord(int address) {
