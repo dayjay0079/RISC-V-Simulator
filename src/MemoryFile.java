@@ -12,16 +12,16 @@ public class MemoryFile {
     }
 
     public int loadByte(int address) {
-        int byteAddress = 3 - (address % 4);
-        return this.data[address/4*4 + byteAddress];
+        int byteAddress = (address & 0xFFFFFFFC) + (3 - (address % 4));
+        return this.data[byteAddress];
     }
 
     public int loadHalfWord(int address) {
-        return this.data[address] << 8 | (this.data[address + 1] & 0xFF);
+        return (this.data[address] << 8) | (this.data[address + 1] & 0xFF);
     }
 
     public int loadWord(int address) {
-        return loadHalfWord(address) << 16 | (loadHalfWord(address + 2) & 0xFFFF);
+        return (loadHalfWord(address) << 16) | (loadHalfWord(address + 2) & 0xFFFF);
     }
 
     public int loadUnsignedByte(int address) {
@@ -34,15 +34,16 @@ public class MemoryFile {
 
 
     public void storeByte(int address, int value) {
-        this.data[address] = (byte) value;
+        int byteAddress = (byte) ((address & 0xFFFFFFFC) + (3 - (address % 4)));
+        this.data[byteAddress] = (byte) value;
     }
 
     public void storeHalfWord(int address, int value) {
-        storeByte(address, value >>> 8);
-        storeByte(address + 1, value);
+        this.data[address] = (byte) ((value >> 8) & 0xFF);
+        this.data[address + 1] = (byte) (value & 0xFF);
     }
     public void storeWord(int address, int value) {
         storeHalfWord(address, value >>> 16);
-        storeHalfWord(address + 2, value);
+        storeHalfWord(address + 2, value & 0xFFFF);
     }
 }
