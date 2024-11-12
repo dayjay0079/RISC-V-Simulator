@@ -20,8 +20,8 @@ public class SimTop {
         while (true) {
             String resultPath = path.replace(".bin", ".res");
             try {
-                program = Read.readBin(path);
-                resultTest = Read.readBin(resultPath);
+                program = IO.readBin(path);
+                resultTest = IO.readBin(resultPath);
                 return;
             } catch (Exception e) {
                 System.out.println("File not found. Please enter a valid path.");
@@ -52,18 +52,23 @@ public class SimTop {
     }
 
     public static void main(String[] args) throws IOException {
+        // Get user input
         Scanner scanner = new Scanner(System.in);
         getMemSize(scanner);
         getProgram(scanner);
         getPrintInstructions(scanner);
         scanner.close();
 
+        // Execute program
         Control control = new Control(memSize, program, printInstructions);
         control.executeProgram();
 
+        // Print final register values
         System.out.println("\nProgram successfully executed!");
         System.out.println("Final register values:");
-        control.printRegisters();
+        IO.printRegs(control);
+
+        // Check if the final register values match the expected values
         checkResult(control);
     }
 }

@@ -15,8 +15,8 @@ public class TestAll {
 
     private static void test(String path) throws IOException {
         System.out.print("Testing \"" + path + ".bin\": \t");
-        int[] program = Read.readBin(path + ".bin");
-        int[] result = Read.readBin(path + ".res");
+        int[] program = IO.readBin(path + ".bin");
+        int[] result = IO.readBin(path + ".res");
         Control control = new Control((int)Math.pow(2, 20), program, false);
         control.executeProgram();
         boolean success = checkResult(control, result);

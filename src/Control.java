@@ -243,7 +243,7 @@ public class Control {
     }
 
     private void executeInstruction(int instruction) {
-        int opcode = Read.getOpcode(instruction);
+        int opcode = Instruction.getOpcode(instruction);
         int rd = 0;
         int funct3 = 0;
         int rs1 = 0;
@@ -253,21 +253,21 @@ public class Control {
 
         switch (opcode) {
             case 0b0110011: // R-type (ALU-Register operations)
-                rd = Read.getRd(instruction);
-                funct3 = Read.getFunct3(instruction);
-                rs1 = Read.getRs1(instruction);
-                rs2 = Read.getRs2(instruction);
-                funct7 = Read.getFunct7(instruction);
+                rd = Instruction.getRd(instruction);
+                funct3 = Instruction.getFunct3(instruction);
+                rs1 = Instruction.getRs1(instruction);
+                rs2 = Instruction.getRs2(instruction);
+                funct7 = Instruction.getFunct7(instruction);
 
                 excArithmetic(rd, funct3, rs1, rs2, funct7);
 
                 break;
 
             case 0b0010011, 0b0000011, 0b1100111, 0b1110011: // I-type
-                rd = Read.getRd(instruction);
-                funct3 = Read.getFunct3(instruction);
-                rs1 = Read.getRs1(instruction);
-                imm = Read.getImmI(instruction);
+                rd = Instruction.getRd(instruction);
+                funct3 = Instruction.getFunct3(instruction);
+                rs1 = Instruction.getRs1(instruction);
+                imm = Instruction.getImmI(instruction);
                 if (imm >= 0x800) {
                     imm -= 0x1000;
                 }
@@ -298,26 +298,26 @@ public class Control {
                 break;
 
             case 0b0100011: // S-type
-                funct3 = Read.getFunct3(instruction);
-                rs1 = Read.getRs1(instruction);
-                rs2 = Read.getRs2(instruction);
-                imm = Read.getImmS(instruction);
+                funct3 = Instruction.getFunct3(instruction);
+                rs1 = Instruction.getRs1(instruction);
+                rs2 = Instruction.getRs2(instruction);
+                imm = Instruction.getImmS(instruction);
 
                 excStore(funct3, rs1, rs2, imm);
                 break;
 
             case 0b1100011: // B-type
-                funct3 = Read.getFunct3(instruction);
-                rs1 = Read.getRs1(instruction);
-                rs2 = Read.getRs2(instruction);
-                imm = Read.getImmB(instruction);
+                funct3 = Instruction.getFunct3(instruction);
+                rs1 = Instruction.getRs1(instruction);
+                rs2 = Instruction.getRs2(instruction);
+                imm = Instruction.getImmB(instruction);
 
                 excBranch(funct3, rs1, rs2, imm);
                 break;
 
             case 0b0110111, 0b0010111: // U-type
-                rd = Read.getRd(instruction);
-                imm = Read.getImmU(instruction);
+                rd = Instruction.getRd(instruction);
+                imm = Instruction.getImmU(instruction);
 
                 switch (opcode) {
                     case 0b0110111: // LUI
@@ -335,8 +335,8 @@ public class Control {
                 break;
                 
             case 0b1101111: // J-type
-                rd = Read.getRd(instruction);
-                imm = Read.getImmJ(instruction);
+                rd = Instruction.getRd(instruction);
+                imm = Instruction.getImmJ(instruction);
 
                 excJAL(rd, imm);
 
@@ -378,9 +378,11 @@ public class Control {
         saveCurrentRegisters();
     }
 
-    private void resetRegStrings() {
+    private void saveCurrentRegisters() {
         for (int i = 0; i < 32; i++) {
             this.regStrings[i] = "x" + i + (i < 10 ? "  = 0x" : " = 0x");
+            String outputHex = Integer.toHexString(this.regs[i].get());
+            this.regStrings[i] += "0".repeat(8 - outputHex.length()) + outputHex;
         }
     }
 
@@ -392,25 +394,7 @@ public class Control {
         return regValues;
     }
 
-    private void saveCurrentRegisters() {
-        resetRegStrings();
-        for (int i = 0; i < 32; i++) {
-            String outputHex = Integer.toHexString(this.regs[i].get());
-            this.regStrings[i] += "0".repeat(8 - outputHex.length()) + outputHex;
-        }
-    }
-
-    public void printRegisters() {
-        for (int i = 0; i < 32; i++) {
-            System.out.println(this.regStrings[i]);
-        }
-    }
-
-    public static void main(String[] args) throws IOException {
-        int[] program = Read.readBin("tests/task3/recursive.bin");
-
-        Control control = new Control((int)Math.pow(2, 20), program, true);
-
-        control.executeProgram();
+    public String[] getRegStrings() {
+        return this.regStrings;
     }
 }
