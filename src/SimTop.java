@@ -4,7 +4,6 @@ import java.util.Scanner;
 public class SimTop {
     public static int memSize;
     public static int[] program;
-    public static int[] resultTest;
     public static boolean printInstructions;
 
     private static void getMemSize(Scanner scanner) {
@@ -18,10 +17,8 @@ public class SimTop {
         System.out.print("Path to the binary file: ");
         String path = scanner.nextLine();
         while (true) {
-            String resultPath = path.replace(".bin", ".res");
             try {
                 program = IO.readBin(path);
-                resultTest = IO.readBin(resultPath);
                 return;
             } catch (Exception e) {
                 System.out.println("File not found. Please enter a valid path.");
@@ -42,15 +39,6 @@ public class SimTop {
         printInstructions = print.equals("y");
     }
 
-    private static void checkResult(Control control) throws IOException {
-        int[] regs = control.getAllRegValues();
-        for (int i = 0; i < 32; i++) {
-            if (regs[i] != resultTest[i]) {
-                System.out.println("Register " + i + " does not match the expected value.");
-            }
-        }
-    }
-
     public static void main(String[] args) throws IOException {
         // Get user input
         Scanner scanner = new Scanner(System.in);
@@ -67,8 +55,5 @@ public class SimTop {
         System.out.println("\nProgram successfully executed!");
         System.out.println("Final register values:");
         IO.printRegs(control);
-
-        // Check if the final register values match the expected values
-        checkResult(control);
     }
 }

@@ -50,9 +50,4 @@ public class ALU {
     public static int sltu(int a, int b) {
         return (a < b) ? 1 : 0;
     }
-
-    public static void main(String[] args) {
-        System.out.println(Integer.toUnsignedString(-1)); //Test
-    }
-
 }
