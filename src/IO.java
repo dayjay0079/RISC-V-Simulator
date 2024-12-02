@@ -29,4 +29,26 @@ public class IO {
             System.out.println(regStrings[i]);
         }
     }
+
+    public static void writeRes(String filename, Control control) {
+        String path = "SimRes/" + filename + ".res";
+        File outputFile = new File(path);
+        int[] regs = control.getAllRegValues();
+        try {
+            if (outputFile.exists()) {
+                outputFile.delete();
+            }
+            outputFile.createNewFile();
+            OutputStream out = new DataOutputStream(new FileOutputStream(outputFile));
+            for (int i = 0; i < 32; i++) {
+                out.write(regs[i] & 0xff);
+                out.write((regs[i] >> 8) & 0xff);
+                out.write((regs[i] >> 16) & 0xff);
+                out.write((regs[i] >> 24) & 0xff);
+            }
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

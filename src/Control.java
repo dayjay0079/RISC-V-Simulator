@@ -26,7 +26,6 @@ public class Control {
         for (int i = 0; i < 32; i++) {
             this.regs[i] = new Register(i);
         }
-        this.regs[2].set(memSize-4); // x2 = sp
     }
 
     private void excArithmetic(int rd, int funct3, int rs1, int rs2, int funct7) {
