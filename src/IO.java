@@ -30,7 +30,7 @@ public class IO {
         }
     }
 
-    public static void writeBin(String filename, Control control) {
+    public static void writeRes(String filename, Control control) {
         String path = "SimRes/" + filename + ".res";
         File outputFile = new File(path);
         int[] regs = control.getAllRegValues();

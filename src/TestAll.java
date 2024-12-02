@@ -6,8 +6,8 @@ public class TestAll {
         int[] regs = control.getAllRegValues();
         for (int i = 0; i < 32; i++) {
             if ((regs[i] != results[i])) {
-//                System.out.println("Register " + i + " does not match the expected value.");
-                success = i == 2;
+                System.out.print("Register " + i + " does not match the expected value.\t");
+                success = false;
             }
         }
         return success;
@@ -20,7 +20,7 @@ public class TestAll {
         int[] result = IO.readBin(fullPath + ".res");
         Control control = new Control((int)Math.pow(2, 20), program, false);
         control.executeProgram();
-        IO.writeBin(filename, control);
+        IO.writeRes(filename, control);
         boolean success = checkResult(control, result);
         System.out.println(success ? "Success" : "Fail");
     }
