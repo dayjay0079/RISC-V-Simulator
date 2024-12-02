@@ -13,46 +13,48 @@ public class TestAll {
         return success;
     }
 
-    private static void test(String path) throws IOException {
-        System.out.print("Testing \"" + path + ".bin\": \t");
-        int[] program = IO.readBin(path + ".bin");
-        int[] result = IO.readBin(path + ".res");
+    private static void test(String path, String filename) throws IOException {
+        String fullPath = path + filename;
+        System.out.print("Testing \"" + fullPath + ".bin\": \t");
+        int[] program = IO.readBin(fullPath + ".bin");
+        int[] result = IO.readBin(fullPath + ".res");
         Control control = new Control((int)Math.pow(2, 20), program, false);
         control.executeProgram();
+        IO.writeBin(filename, control);
         boolean success = checkResult(control, result);
         System.out.println(success ? "Success" : "Fail");
     }
 
     private static void test1() throws IOException {
             String path = "tests/task1/";
-            test(path + "addlarge");
-            test(path + "addneg");
-            test(path + "addpos");
-            test(path + "bool");
-            test(path + "set");
-            test(path + "shift");
-            test(path + "shift2");
+            test(path, "addlarge");
+            test(path, "addneg");
+            test(path, "addpos");
+            test(path, "bool");
+            test(path, "set");
+            test(path, "shift");
+            test(path, "shift2");
     }
 
     private static void test2() throws IOException {
             String path = "tests/task2/";
-            test(path + "branchcnt");
-            test(path + "branchmany");
-            test(path + "branchtrap");
+            test(path, "branchcnt");
+            test(path, "branchmany");
+            test(path, "branchtrap");
     }
 
     private static void test3() throws IOException {
             String path = "tests/task3/";
-            test(path + "loop");
-            test(path + "recursive");
-            test(path + "string");
-            test(path + "width");
+            test(path, "loop");
+            test(path, "recursive");
+            test(path, "string");
+            test(path, "width");
     }
 
     private static void test4() throws IOException {
-        String path = "tests/task4/t";
+        String path = "tests/task4/";
         for (int i = 1; i <= 15; i++) {
-            test(path + i);
+            test(path, "t" + i);
         }
     }
 
