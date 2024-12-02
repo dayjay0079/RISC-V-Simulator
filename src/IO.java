@@ -31,7 +31,7 @@ public class IO {
     }
 
     public static void writeRes(String filename, Control control) {
-        String path = "SimRes/" + filename + ".res";
+        String path = filename.replace(".bin", "_Sim.res");
         File outputFile = new File(path);
         int[] regs = control.getAllRegValues();
         try {
@@ -50,5 +50,6 @@ public class IO {
         } catch (IOException e) {
             e.printStackTrace();
         }
+//        System.out.println("Successfully dumped registers to \"" + outputFile.getAbsolutePath() + "\"");
     }
 }

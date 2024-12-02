@@ -15,14 +15,14 @@ public class Control {
 
     public Control(int memSize, int[] program, boolean printInstructions) {
         this.execute = true;
-        initRegs(memSize);
+        initRegs();
         this.mem = new MemoryFile(memSize, program);
         this.pc = new ProgramCounter();
         this.printInstructions = printInstructions;
         this.instructionString = "";
     }
 
-    private void initRegs(int memSize) {
+    private void initRegs() {
         for (int i = 0; i < 32; i++) {
             this.regs[i] = new Register(i);
         }
