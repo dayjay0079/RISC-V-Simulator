@@ -24,6 +24,11 @@ To compile the simulator via make, you should:
 - To simulate a given binary file, it simply has to be entered as an argument when executing the simulator: `java SimTop <path-to-binary>` or `java -jar RISC-V_Sim.jar <path-to-binary>`.
 - The input binary will be simulated, and resulting registers will be printed as well as dumped to the inputs directory as `<path-to-binary>_Sim.res`.
 
+## Testing
+A tester has been written that executes all the tests in the `./tests` directory and compares with the given `.res` files.
+
+To execute this tester, simply compile and run the `TestAll` class with the `tests` directory path given as an argument.
+
 ---
 
 This project is a fork of [cae-lab/finasgmt](https://github.com/schoeberl/cae-lab/tree/master/finasgmt).

@@ -1,6 +1,7 @@
 import java.io.IOException;
 
 public class TestAll {
+    private static String testsPath;
     private static boolean checkResult(Control control, int[] results) throws IOException {
         boolean success = true;
         int[] regs = control.getAllRegValues();
@@ -25,7 +26,7 @@ public class TestAll {
     }
 
     private static void test1() throws IOException {
-            String path = "tests/task1/";
+            String path = testsPath + "task1/";
             test(path + "addlarge");
             test(path + "addneg");
             test(path + "addpos");
@@ -36,14 +37,14 @@ public class TestAll {
     }
 
     private static void test2() throws IOException {
-            String path = "tests/task2/";
+            String path = testsPath + "task2/";
             test(path + "branchcnt");
             test(path + "branchmany");
             test(path + "branchtrap");
     }
 
     private static void test3() throws IOException {
-            String path = "tests/task3/";
+            String path = testsPath + "task3/";
             test(path + "loop");
             test(path + "recursive");
             test(path + "string");
@@ -51,13 +52,14 @@ public class TestAll {
     }
 
     private static void test4() throws IOException {
-        String path = "tests/task4/t";
+        String path = testsPath + "task4/t";
         for (int i = 1; i <= 15; i++) {
             test(path + i);
         }
     }
 
     public static void main(String[] args) throws IOException {
+        testsPath = args[0];
         test1();
         System.out.println();
 
